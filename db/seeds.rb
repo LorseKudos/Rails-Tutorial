@@ -31,3 +31,11 @@ following = users[2..50]
 followers = users[3..40]
 following.each { |followed| user.follow(followed) }
 followers.each { |follower| follower.follow(user) }
+
+#いいね
+microposts = Micropost.all[1..50]
+microposts.each { |micropost|
+  users[1..50].each { |favorer|
+  favorer.fav(micropost)
+  }
+}

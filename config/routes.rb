@@ -12,12 +12,16 @@ Rails.application.routes.draw do
   delete '/logout',  to: 'sessions#destroy'
   resources :users do
     member do
-      get :following, :followers
+      get :following, :followers, :favorites
     end
   end
-  resources :users
   resources :account_activations, only: [:edit]
   resources :password_resets,     only: [:new, :create, :edit, :update]
-  resources :microposts,          only: [:create, :destroy]
+  resources :microposts,          only: [:create, :destroy] do
+    member do
+      get :favorers
+    end
+  end
   resources :relationships,       only: [:create, :destroy]
+  resources :favorites,           only: [:create, :destroy]
 end

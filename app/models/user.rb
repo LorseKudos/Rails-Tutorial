@@ -8,6 +8,11 @@ class User < ApplicationRecord
                                   dependent:   :destroy
   has_many :following, through: :active_relationships, source: :followed
   has_many :followers, through: :passive_relationships, source: :follower
+  has_many :favorite_relationships, class_name:  "Favorite",
+                                  foreign_key: "user_id",
+                                  dependent:   :destroy
+  has_many :favorites, through: :favorite_relationships, source: :micropost
+
   attr_accessor :remember_token, :activation_token, :reset_token
   before_save   :downcase_email
   before_create :create_activation_digest
@@ -79,8 +84,10 @@ class User < ApplicationRecord
   def feed
     following_ids = "SELECT followed_id FROM relationships
                      WHERE follower_id = :user_id"
+    favorite_micropost_ids = "SELECT micropost_id FROM favorites WHERE user_id = :user_id"
     Micropost.where("user_id IN (#{following_ids})
-                     OR user_id = :user_id", user_id: id)
+                     OR user_id = :user_id
+                     OR id IN (#{favorite_micropost_ids})", user_id: id)
   end
 
   # ユーザーをフォローする
@@ -96,6 +103,21 @@ class User < ApplicationRecord
   # 現在のユーザーがフォローしてたらtrueを返す
   def following?(other_user)
     following.include?(other_user)
+  end
+
+  # ポストをファボする
+  def fav(micropost)
+    favorite_relationships.create(micropost_id: micropost.id)
+  end
+
+  # ポストをファボ解除する
+  def unfav(micropost)
+    favorite_relationships.find_by(micropost_id: micropost.id).destroy
+  end
+
+  # 現在のユーザーがファボしてたらtrueを返す
+  def favorite?(micropost)
+    favorites.include?(micropost)
   end
 
   private

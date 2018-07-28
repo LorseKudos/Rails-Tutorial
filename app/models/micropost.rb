@@ -5,6 +5,10 @@ class Micropost < ApplicationRecord
   validates :user_id, presence: true
   validates :content, presence: true, length: { maximum: 140 }
   validate  :picture_size
+  has_many :favorite_relationships, class_name:  "Favorite",
+                                     foreign_key: "micropost_id",
+                                     dependent:   :destroy
+  has_many :favorers, through: :favorite_relationships, source: :user
 
   private
 
