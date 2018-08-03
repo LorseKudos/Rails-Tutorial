@@ -5,7 +5,23 @@ class UsersController < ApplicationController
   before_action :admin_user,     only: :destroy
 
   def index
-    @users = User.where(activated: true).paginate(page: params[:page])
+    if params[:search] && (@str = params[:search][:query].to_s) && !@str.blank?
+      @users = User.where('name LIKE(?) AND activated = ?', "#{@str}%", true).paginate(page:params[:page])
+    else
+      @users = User.where(activated: true).paginate(page:params[:page])
+    end
+  end
+
+  def search
+    if params[:search] && (@str = params[:search][:query].to_s) && !@str.blank?
+      @users = User.where('name LIKE(?) AND activated = ?', "#{@str}%", true).paginate(page:params[:page])
+    else
+      @users = User.where(activated: true).paginate(page:params[:page])
+    end
+    respond_to do |format|
+      format.html { redirect_to users_path(@users) }
+      format.js
+    end
   end
 
   def show
@@ -72,7 +88,7 @@ class UsersController < ApplicationController
 
     def user_params
       params.require(:user).permit(:name, :email, :password,
-                                   :password_confirmation)
+                                   :password_confirmation, :query)
     end
 
     # beforeアクション
